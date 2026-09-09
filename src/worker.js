@@ -5,6 +5,7 @@ const LOGIN_WINDOW_MS = 15 * 60 * 1000;
 const MAX_LOGIN_FAILURES = 8;
 // Keep PBKDF2 within the free Worker CPU budget while retaining salted hashing.
 const PASSWORD_HASH_ITERATIONS = 10000;
+const BACKUP_SCHEMA_VERSION = 3;
 const ACCESS_ISSUER = 'https://dawn-salad-adac.cloudflareaccess.com';
 let accessKeysPromise;
 const ALLOWED_FIELDS = [
@@ -68,6 +69,14 @@ function randomHex(byteLength) {
 async function sha256Hex(value) {
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
   return bytesToHex(new Uint8Array(digest));
+}
+
+function canonicalJson(value) {
+  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`;
+  if (value && typeof value === 'object') {
+    return `{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${canonicalJson(value[key])}`).join(',')}}`;
+  }
+  return JSON.stringify(value);
 }
 
 function constantTimeEqual(left, right) {
@@ -271,7 +280,112 @@ function cleanPatch(input) {
   return patch;
 }
 
-async function createBackup(env, generatedAt = new Date()) {
+async function listScanInventory(env) {
+  const inventory = [];
+  let cursor;
+  do {
+    const listed = await env.SCANS.list({ prefix: 'scans/', cursor });
+    inventory.push(...listed.objects.map(object => ({
+      key: object.key,
+      size: object.size,
+      etag: object.etag || null,
+      uploaded: object.uploaded ? object.uploaded.toISOString() : null
+    })));
+    cursor = listed.truncated ? listed.cursor : undefined;
+  } while (cursor);
+  return inventory.sort((left, right) => left.key.localeCompare(right.key));
+}
+
+function backupDeploymentMetadata(env) {
+  const versionMetadata = env.CF_VERSION_METADATA || {};
+  return {
+    source_commit: env.BACKUP_SOURCE_COMMIT || 'unrecorded',
+    worker_version_id: versionMetadata.id || env.BACKUP_WORKER_VERSION_ID || 'unrecorded',
+    worker_version_tag: versionMetadata.tag || null,
+    pages_deployment_id: env.BACKUP_PAGES_DEPLOYMENT_ID || 'unrecorded',
+    migration_state: env.BACKUP_MIGRATION_STATE || 'unrecorded'
+  };
+}
+
+async function createVersionedBackup(env, generatedAt = new Date()) {
+  const [contacts, history, users, authAudit, scanInventory] = await Promise.all([
+    env.DB.prepare('SELECT * FROM contacts ORDER BY id').all(),
+    env.DB.prepare('SELECT * FROM edit_history ORDER BY id').all(),
+    env.DB.prepare(`
+      SELECT id, username, display_name, role, active, created_at, updated_at, last_login_at
+      FROM editor_users ORDER BY id
+    `).all(),
+    env.DB.prepare('SELECT id, user_id, actor, username, action, details_json, created_at FROM auth_audit ORDER BY id').all(),
+    listScanInventory(env)
+  ]);
+  const backupId = `${generatedAt.toISOString().replace(/[-:.]/g, '')}-${randomHex(4)}`;
+  const prefix = `backups/v2/${backupId}`;
+  const dataKey = `${prefix}/data.json`;
+  const manifestKey = `${prefix}/manifest.json`;
+  const data = {
+    backup_format: 'casajoy-d1-data',
+    backup_format_version: 2,
+    backup_id: backupId,
+    generated_at: generatedAt.toISOString(),
+    schema_version: BACKUP_SCHEMA_VERSION,
+    tables: {
+      contacts: contacts.results,
+      edit_history: history.results,
+      editor_users: users.results,
+      auth_audit: authAudit.results
+    }
+  };
+  const dataBody = JSON.stringify(data);
+  const scanInventorySha256 = await sha256Hex(canonicalJson(scanInventory));
+  const manifest = {
+    backup_format: 'casajoy-d1-manifest',
+    backup_format_version: 2,
+    backup_id: backupId,
+    generated_at: generatedAt.toISOString(),
+    schema_version: BACKUP_SCHEMA_VERSION,
+    source: backupDeploymentMetadata(env),
+    tables_included: ['contacts', 'edit_history', 'editor_users_metadata', 'auth_audit'],
+    tables_excluded: ['editor_users.password_salt', 'editor_users.password_hash', 'editor_sessions', 'login_attempts'],
+    table_counts: {
+      contacts: contacts.results.length,
+      edit_history: history.results.length,
+      editor_users_metadata: users.results.length,
+      auth_audit: authAudit.results.length
+    },
+    objects: {
+      data: { key: dataKey, bytes: new TextEncoder().encode(dataBody).byteLength },
+      scans: { prefix: 'scans/', count: scanInventory.length }
+    },
+    checksums: {
+      data_sha256: await sha256Hex(dataBody),
+      scan_inventory_sha256: scanInventorySha256
+    },
+    scan_inventory: scanInventory,
+    restore_notes: [
+      'Apply the recorded schema migrations to a non-production D1 database before importing data.',
+      'Restore contacts and edit_history before restoring editor metadata and auth_audit.',
+      'Do not restore editor_sessions or login_attempts; issue fresh sessions after recovery.',
+      'Password hashes are intentionally excluded; reset editor passwords through the protected admin page after recovery.',
+      'Scan objects remain separate R2 objects and must be verified or restored from an encrypted independent copy.'
+    ]
+  };
+  const manifestBody = JSON.stringify(manifest);
+  await env.SCANS.put(dataKey, dataBody, {
+    httpMetadata: {
+      contentType: 'application/json',
+      cacheControl: 'private, max-age=0'
+    }
+  });
+  await env.SCANS.put(manifestKey, manifestBody, {
+    httpMetadata: {
+      contentType: 'application/json',
+      cacheControl: 'private, max-age=0'
+    }
+  });
+  return { backupId, dataKey, manifestKey, manifest };
+}
+
+async function createLegacyBackup(env, generatedAt = new Date()) {
   const [contacts, history] = await Promise.all([
     env.DB.prepare('SELECT * FROM contacts ORDER BY id').all(),
     env.DB.prepare('SELECT * FROM edit_history ORDER BY id').all()
@@ -300,6 +414,12 @@ async function createBackup(env, generatedAt = new Date()) {
     cursor = listed.truncated ? listed.cursor : undefined;
   } while (cursor);
   return { key, contacts: contacts.results.length, history: history.results.length };
+}
+
+async function createBackup(env, generatedAt = new Date()) {
+  const legacy = await createLegacyBackup(env, generatedAt);
+  const versioned = await createVersionedBackup(env, generatedAt);
+  return { ...versioned, legacy };
 }
 
 export default {
