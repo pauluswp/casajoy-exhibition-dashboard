@@ -25,7 +25,7 @@ This creates `cloudflare/private/seed.sql`. It contains customer contact data an
 
 - Worker API: `https://casajoy-exhibition-api.uanlejia.workers.dev`
 - Pages dashboard: `https://casajoy-exhibition-dashboard.pages.dev`
-- Cloudflare Access protects the Pages hostname with the `Paulus only` policy.
+- Cloudflare Access protects only the `/admin*` path with the `Paulus only` policy; the main dashboard remains publicly reachable.
 - D1 contains 59 interactions across 58 companies and is the authoritative online database.
 - Editor accounts use PBKDF2 password hashes and 8-hour HttpOnly sessions. The signed-in editor display name is written to `edit_history` for each change.
 - `/admin` remains limited to the Paulus Cloudflare Access identity; the Access JWT is verified against the team's published signing keys.
@@ -50,4 +50,4 @@ The existing dashboard at `http://localhost:3000` uses the separate local Node s
 
 Open `https://casajoy-exhibition-dashboard.pages.dev/admin` while signed in through the Paulus Cloudflare Access account. Create editor accounts there and share each username/password through a secure channel. Passwords are never seeded in SQL, stored in the browser, or written to source files.
 
-After the first account is created, the Cloudflare Access application should protect `/admin*` only. The main dashboard can then be available to editors, while its data and image APIs continue to require an editor session.
+The Cloudflare Access application protects `/admin*` only. The main dashboard is publicly reachable, while its data and image APIs continue to require an editor session.
