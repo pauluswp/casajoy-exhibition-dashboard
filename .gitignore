@@ -1,0 +1,47 @@
+# Local credentials and environment files
+.dev.vars
+.env
+.env.*
+!.dev.vars.example
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Private data, exports, and recovery artifacts
+private/
+cloudflare/private/
+backups/
+exports/
+seed*.sql
+recovery*.sql
+*-recovery*.sql
+*.dump
+*.sql.bak
+
+# Wrangler and local runtime state
+.wrangler/
+node_modules/
+.cache/
+coverage/
+dist/
+build/
+out/
+tmp/
+*.log
+*.map
+
+# Generated local artifacts
+*.sqlite
+*.sqlite-*
+*.db
+*.db-*
+*.zip
+*.tar
+*.tar.gz
+
+# Editor and OS files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

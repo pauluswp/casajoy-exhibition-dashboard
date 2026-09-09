@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>CasaJoy User Administration</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="shell">
+    <aside>
+      <div class="logo">CasaJoy</div>
+      <p class="small">USER ADMINISTRATION</p>
+      <nav>
+        <a href="/">Contact register</a>
+        <a class="active" href="/admin">Editor accounts</a>
+      </nav>
+      <div class="side-note">Administrator area<br><span>Access is limited to Paulus.</span></div>
+    </aside>
+    <main>
+      <header>
+        <div>
+          <p class="small">CASAJOY FIELD DESK</p>
+          <h1>Editor accounts</h1>
+        </div>
+        <div class="actions"><a class="outline" href="/">Back to dashboard</a></div>
+      </header>
+      <p class="auth-error" id="adminError" hidden></p>
+      <section class="summary">
+        <div><span>Administrator</span><strong id="adminEmail">-</strong></div>
+        <div><span>Accounts</span><strong id="userCount">0</strong></div>
+        <div><span>Active editors</span><strong id="activeCount">0</strong></div>
+      </section>
+      <section class="panel">
+        <p class="small">NEW ACCOUNT</p>
+        <h2>Create an editor login</h2>
+        <p class="muted">Passwords must be at least 10 characters. They are hashed on the Worker and cannot be recovered.</p>
+        <form id="createUserForm" class="edit-form admin-create-form">
+          <div class="edit-grid">
+            <label>Username<input name="username" pattern="[A-Za-z0-9][A-Za-z0-9._-]{2,39}" autocomplete="off" required></label>
+            <label>Editor name<input name="display_name" maxlength="100" required></label>
+            <label>Password<input name="password" type="password" minlength="10" maxlength="200" autocomplete="new-password" required></label>
+          </div>
+          <div class="bar"><button type="submit" class="blue">Create editor</button></div>
+        </form>
+      </section>
+      <section class="panel admin-panel">
+        <p class="small">CURRENT ACCOUNTS</p>
+        <h2>Manage editor access</h2>
+        <div class="admin-table-wrap"><table><thead><tr><th>Username</th><th>Editor name</th><th>Status</th><th>Last login</th><th>Actions</th></tr></thead><tbody id="users"></tbody></table></div>
+      </section>
+      <section class="panel admin-panel">
+        <p class="small">SECURITY LOG</p>
+        <h2>Recent authentication events</h2>
+        <div class="admin-table-wrap"><table><thead><tr><th>When</th><th>Action</th><th>User</th><th>Actor</th><th>Details</th></tr></thead><tbody id="audit"></tbody></table></div>
+      </section>
+    </main>
+  </div>
+  <script src="admin.js"></script>
+</body>
+</html>

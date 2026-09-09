@@ -1,0 +1,24 @@
+name = "casajoy-exhibition-api"
+main = "src/worker.js"
+compatibility_date = "2026-09-08"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "casajoy-exhibition"
+database_id = "4541e153-1372-48f9-9389-57841d3c3e89"
+migrations_dir = "migrations"
+
+[[r2_buckets]]
+binding = "SCANS"
+bucket_name = "casajoy-exhibition-scans"
+
+[vars]
+ALLOWED_EMAILS = "pauluswpurwanto@hljii.id"
+ACCESS_TEAM_DOMAIN = "dawn-salad-adac.cloudflareaccess.com"
+ACCESS_AUDIENCE = "db0aa7c81fb2c119520ad903cb8c57e3e1f2924bbe925dac578c231e981c99d5"
+
+[triggers]
+# 01:00 Jakarta time (UTC+7), every day.
+crons = ["0 18 * * *"]
+
+# INTERNAL_API_TOKEN is stored as a Worker secret, not in this file.

@@ -1,0 +1,1 @@
+ALTER TABLE contacts ADD COLUMN qr_data TEXT NOT NULL DEFAULT '[]';
