@@ -1,0 +1,9 @@
+{
+  "name": "casajoy-exhibition-dashboard",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node scripts/check.mjs",
+    "check:local-d1": "node scripts/check.mjs --local-d1"
+  }
+}
