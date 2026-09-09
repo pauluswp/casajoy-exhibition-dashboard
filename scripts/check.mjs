@@ -6,6 +6,7 @@ const projectFiles = [
   'site/app.js',
   'site/admin.js',
   'scripts/check.mjs',
+  'scripts/verify-backup.mjs',
   'scripts/make-qr-update.mjs',
   'scripts/make-seed.mjs'
 ];

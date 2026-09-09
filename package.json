@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "check": "node scripts/check.mjs",
-    "check:local-d1": "node scripts/check.mjs --local-d1"
+    "check:local-d1": "node scripts/check.mjs --local-d1",
+    "backup:verify": "node scripts/verify-backup.mjs"
   }
 }

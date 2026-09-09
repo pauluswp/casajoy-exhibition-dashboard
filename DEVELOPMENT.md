@@ -35,3 +35,13 @@ The local D1 state is stored under `.wrangler/local-qa/`, which is ignored by Gi
 Run the Worker locally with Wrangler and local bindings when testing API behavior. Use Pages development separately for the static dashboard and proxy shell. Keep production bindings disabled for local work; do not use `--remote`.
 
 Before opening a pull request, inspect the diff, run `npm run check`, test the affected dashboard flows with synthetic data, and confirm that no private or generated files are staged.
+
+## Backup tooling
+
+Backup code is exercised locally only through syntax checks until a non-production R2 test binding is available. A downloaded private v2 snapshot can be checked without connecting to Cloudflare:
+
+```text
+npm run backup:verify -- private\\backup-to-verify
+```
+
+Do not run backup or restore commands against remote bindings during ordinary development. Production backup creation and remote migrations require the release gates in `RELEASE_WORKFLOW.md`.

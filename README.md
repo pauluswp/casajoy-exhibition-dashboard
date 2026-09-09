@@ -31,7 +31,7 @@ This creates `cloudflare/private/seed.sql`. It contains customer contact data an
 - `/admin` remains limited to the Paulus Cloudflare Access identity; the Access JWT is verified against the team's published signing keys.
 - Pages forwards `/api/*` and private image requests to the Worker using the private `INTERNAL_API_TOKEN` secret.
 - R2 bucket `casajoy-exhibition-scans` contains the 96 private form/card scans for `scan-001` through `scan-048`.
-- A daily Worker backup runs at 01:00 Jakarta time and retains 30 days of JSON snapshots in the private R2 bucket.
+- A daily Worker backup runs at 01:00 Jakarta time. During the transition, it writes both the existing 30-day legacy snapshot and an append-only v2 snapshot with a private manifest; v2 data includes sanitized editor metadata but never password material or active sessions.
 - `private/d1-initial-recovery-2026-09-08.sql` is the initial SQL recovery snapshot.
 
 Pages deployments use `npx wrangler pages deploy site --project-name casajoy-exhibition-dashboard --branch main --commit-dirty=true` from this directory. The Worker and Pages projects intentionally keep separate Wrangler deployment commands.
@@ -41,6 +41,16 @@ Pages deployments use `npx wrangler pages deploy site --project-name casajoy-exh
 The Worker requires Cloudflare Access's authenticated-email header and an allow-list in `ALLOWED_EMAILS`. Copy `.dev.vars.example` to `.dev.vars` for local development and replace the example address. Do not commit `.dev.vars`.
 
 The API uses `If-Match` or a record revision when updating a contact. A stale update receives HTTP 409 instead of silently overwriting a newer edit.
+
+## Verify a private v2 backup
+
+After downloading one v2 backup into a local private directory containing `data.json` and `manifest.json`, verify its checksum, table counts, scan inventory checksum, and absence of password/session material:
+
+```powershell
+npm run backup:verify -- private\backup-to-verify
+```
+
+Never place the downloaded backup directory inside a tracked path or upload it unencrypted to a third-party drive.
 
 ## Local dashboard safety
 
