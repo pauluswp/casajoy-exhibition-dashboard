@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CasaJoy Admin Panel - LOCAL MODE</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .local-mode-badge {
+      background: #48bb78;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: bold;
+      display: inline-block;
+      margin-bottom: 20px;
+    }
+    .mock-controls {
+      background: #ebf8ff;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+      border: 2px solid #4299e1;
+    }
+    .user-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+      margin: 20px 0;
+    }
+    .user-card {
+      background: #f7fafc;
+      padding: 20px;
+      border-radius: 8px;
+      border-left: 4px solid #4299e1;
+    }
+    .user-actions button {
+      margin-right: 10px;
+      margin-top: 10px;
+    }
+    /* PREVIEW TEST CHANGE */
+    .preview-badge {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: #fc8181;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: bold;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      z-index: 9999;
+    }
+    @media (max-width: 768px) {
+      .grid { display: block; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <!-- PREVIEW TEST CHANGES -->
+    <div class="preview-badge">🔵 PREVIEW DEPLOYMENT TEST</div>
+    
+    <aside>
+      <div class="logo">CasaJoy</div>
+      <p class="small">ADMINISTRATION - LOCAL MODE</p>
+      <nav>
+        <a href="/site/index.html">Contact register</a>
+        <a class="active" href="#">Editor accounts</a>
+      </nav>
+      <div class="side-note">Local testing only<br><span>Changes are NOT persisted</span></div>
+    </aside>
+    <main>
+      <header>
+        <div>
+          <p class="small">CASAJOY FIELD DESK</p>
+          <h1>Editor Accounts (Preview Test)</h1>
+        </div>
+        <div class="actions">
+          <span class="local-mode-badge">📱 LOCAL TEST MODE ONLY</span>
+          <a class="outline" href="/site/index.html">Back to Dashboard</a>
+        </div>
+      </header>
+
+      <div class="mock-controls">
+        <strong>⚠️ Local Test Mode:</strong> This is a MOCK admin panel for UI testing only. No real database or authentication is used. All changes will be lost when you refresh.
+      </div>
+
+      <section class="summary">
+        <div><span>Administrator</span><strong id="adminEmail">test@admin.local</strong></div>
+        <div><span>Accounts</span><strong id="userCount">0</strong></div>
+        <div><span>Active editors</span><strong id="activeCount">0</strong></div>
+      </section>
+
+      <section class="panel">
+        <p class="small">NEW ACCOUNT (MOCK)</p>
+        <h2>Create a test editor login</h2>
+        <form id="createUserForm" class="edit-form admin-create-form">
+          <div class="edit-grid">
+            <label>Username<input name="username" pattern="[A-Za-z0-9][A-Za-z0-9._-]{2,39}" autocomplete="off" required placeholder="johndoe"></label>
+            <label>Editor name<input name="display_name" maxlength="100" required placeholder="John Doe"></label>
+            <label>Password<input name="password" type="password" minlength="10" maxlength="200" autocomplete="new-password" required placeholder="minimum 10 characters"></label>
+          </div>
+          <div class="bar"><button type="submit" class="blue">Create Mock Editor</button></div>
+        </form>
+      </section>
+
+      <section class="panel">
+        <p class="small">EXISTING MOCK USERS</p>
+        <h2>Pre-loaded test accounts</h2>
+        <div class="user-cards" id="users"></div>
+      </section>
+
+      <section class="panel">
+        <p class="small">HOW TO USE THIS</p>
+        <ul style="line-height: 1.8;">
+          <li>This is a COMPLETELY LOCAL mock admin panel</li>
+          <li>No real Cloudflare Workers or D1 database needed</li>
+          <li>Create unlimited test users for UI testing</li>
+          <li>When ready to implement real changes, push code to GitHub</li>
+        </ul>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    // Pre-loaded mock users
+    let mockUsers = [
+      { username: 'kobe_test', displayName: 'Kobe Smith', active: true, lastLogin: 'Never' },
+      { username: 'sarah_editor', displayName: 'Sarah Johnson', active: true, lastLogin: '2 hours ago' },
+      { username: 'mike_manager', displayName: 'Mike Wilson', active: false, lastLogin: '3 days ago' }
+    ];
+
+    function renderUsers() {
+      const container = document.getElementById('users');
+      const countSpan = document.getElementById('userCount');
+      const activeSpan = document.getElementById('activeCount');
+
+      container.innerHTML = '';
+      
+      let activeCount = 0;
+      mockUsers.forEach(user => {
+        if (user.active) activeCount++;
+        
+        const card = document.createElement('div');
+        card.className = 'user-card';
+        card.innerHTML = `
+          <strong>${user.displayName}</strong>
+          <p style="margin: 10px 0;"><code>${user.username}</code></p>
+          <p>Status: ${user.active ? '<span style="color: green;">✓ Active</span>' : '<span style="color: red;">✗ Inactive</span>'}</p>
+          <p>Last login: ${user.lastLogin}</p>
+          <div class="user-actions">
+            <button onclick="toggleUser('${user.username}')" class="ghost">${user.active ? 'Deactivate' : 'Activate'}</button>
+            <button onclick="deleteUser('${user.username}')" class="outline">Delete</button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+
+      countSpan.textContent = mockUsers.length;
+      activeSpan.textContent = activeCount;
+    }
+
+    document.getElementById('createUserForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const formData = new FormData(this);
+      const newUser = {
+        username: formData.get('username'),
+        displayName: formData.get('display_name'),
+        password: formData.get('password'), // In real version, this would be hashed
+        active: true,
+        lastLogin: 'Never'
+      };
+
+      mockUsers.push(newUser);
+      renderUsers();
+      this.reset();
+      alert(`✅ Mock user "${newUser.username}" created!\n\nNote: This is just for UI testing. Real user creation requires Cloudflare Workers + D1 database.`);
+    });
+
+    window.toggleUser = function(username) {
+      const user = mockUsers.find(u => u.username === username);
+      if (user) {
+        user.active = !user.active;
+        renderUsers();
+      }
+    };
+
+    window.deleteUser = function(username) {
+      if (confirm(`Delete user "${username}"?`)) {
+        mockUsers = mockUsers.filter(u => u.username !== username);
+        renderUsers();
+      }
+    };
+
+    // Initialize
+    renderUsers();
+  </script>
+</body>
+</html>
