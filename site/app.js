@@ -363,7 +363,7 @@ function sortColumn(column) {
   document.querySelectorAll('.sortable-header').forEach(th => {
     th.classList.remove('asc', 'desc');
   });
-  const currentTh = document.querySelector(\`th[onclick="sortColumn('${column}')"]\`);
+  const currentTh = document.querySelector(`th[onclick="sortColumn('${column}')"]`);
   if (currentTh) {
     currentTh.classList.add(currentSort.direction);
   }
@@ -404,10 +404,10 @@ function getSortValue(company, column) {
 // ============================
 function showDeleteConfirm(companyName) {
   pendingDeleteId = companyName;
-  const confirmed = confirm(\`Delete "${esc(companyName)}" entry?
+  const confirmed = confirm(`Delete "${esc(companyName)}" entry?
 
 This action cannot be undone.
-Are you sure you want to proceed?\`);
+Are you sure you want to proceed.`);
   
   if (confirmed && editor) {
     deleteCompany(companyName);
@@ -416,20 +416,23 @@ Are you sure you want to proceed?\`);
 
 async function deleteCompany(companyName) {
   try {
-    const response = await fetch(\`\${API_BASE}/api/contacts?company=\${encodeURIComponent(companyName)}\`, {
-      method: 'DELETE'
-    });
+    const response = await fetch(
+      `${API_BASE}/api/contacts?company=${encodeURIComponent(companyName)}`,
+      {
+        method: 'DELETE'
+      }
+    );
     
     if (response.ok) {
       await loadFromDatabase(true);
       alert('Entry deleted successfully!');
     } else {
       const error = await response.json();
-      alert(\`Delete failed: \${error.error || 'Unknown error'}\`);
+      alert(`Delete failed: ${error.error || 'Unknown error'}`);
     }
   } catch (error) {
     console.error('Delete error:', error);
-    alert(\`Could not delete: \${error.message}\`);
+    alert(`Could not delete: ${error.message}`);
   }
 }
 
