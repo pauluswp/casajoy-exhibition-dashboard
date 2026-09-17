@@ -1,0 +1,36 @@
+# Local Development Configuration for Cloudflare Pages + Workers
+name = "casajoy-exhibition-dashboard"
+compatibility_date = "2026-09-08"
+
+[site]
+bucket = "./site"
+
+# Bindings for local Pages development
+[durable_objects]
+bindings = []
+
+[kv_namespaces]
+bindings = []
+
+# Local D1 database binding (mirrors production DB structure)
+[[d1_databases]]
+binding = "DB"
+database_name = "casajoy-exhibition-local"
+database_id = "4541e153-1372-48f9-9389-57841d3c3e89"  # Production ID for reference
+preview_database_id = "casajoy-exhibition-preview"
+
+# Local R2 bucket binding (creates mock locally)
+[[r2_buckets]]
+binding = "SCANS"
+bucket_name = "casajoy-exhibition-scans-local"
+
+# Environment variables
+[vars]
+ACCESS_TEAM_DOMAIN = "dawn-salad-adac.cloudflareaccess.com"
+ALLOWED_EMAILS = "pauluswpurwanto@hljii.id"
+
+# Build settings
+[build]
+command = ""  # Static site, no build needed
+cwd = "./site"
+watch_dir = "./site"
