@@ -8,6 +8,13 @@ let currentUser = null;
 let apiAvailable = false;
 let saving = false;
 
+// Sort & Filter State
+let currentSort = { column: null, direction: null };
+let currentFilters = {};
+// Delete Confirmation State
+let pendingDeleteId = null;
+
+
 const $ = selector => document.querySelector(selector);
 const key = value => (value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 const esc = (value = '') => String(value).replace(/[&<>"']/g, character => ({
@@ -165,7 +172,7 @@ function render() {
     const latest = [...company.interactions].reverse().find(interaction => interaction.followup)?.followup || '-';
     const needsReview = company.interactions.some(interaction => !interaction.goodEnough);
     const latestInteraction = company.interactions[company.interactions.length - 1];
-    return `<tr><td><button class="company" data-company="${esc(company.id)}">${esc(company.company)}</button></td><td><span class="person">${esc(people)}</span></td><td><span class="tag">${esc(latestInteraction.priority || 'To evaluate')}</span></td><td>${esc(latest)}</td><td class="${needsReview ? 'review' : ''}">${needsReview ? 'Needs review' : 'Reviewed'}</td><td><button class="edit" data-company="${esc(company.id)}">${needsReview ? 'Review' : 'Open'} &gt;</button></td></tr>`;
+    return `<tr><td><button class="company" data-company="${esc(company.id)}">${esc(company.company)}</button><button class="delete-btn" title="Delete this entry" onclick="showDeleteConfirm('${esc(company.company)}')">🗑</button></td><td><span class="person">${esc(people)}</span></td><td><span class="tag">${esc(latestInteraction.priority || 'To evaluate')}</span></td><td>${esc(latest)}</td><td class="${needsReview ? 'review' : ''}">${needsReview ? 'Needs review' : 'Reviewed'}</td><td><button class="edit" data-company="${esc(company.id)}">${needsReview ? 'Review' : 'Open'} &gt;</button></td></tr>`;
   }).join('') || '<tr><td colspan="6">No matches.</td></tr>';
   document.querySelectorAll('[data-company]').forEach(button => button.onclick = () => openCompany(button.dataset.company));
   document.querySelectorAll('.edit').forEach(button => button.onclick = () => openCompany(button.dataset.company));
@@ -337,6 +344,107 @@ $('#guideLink').onclick = event => {
   show(`<div class="card-head"><div><p class="small">CASAJOY GUIDE</p><h2>Guide book</h2></div><button class="close" data-close>&times;</button></div><p>D1 is the authoritative online database. Each edit saves one interaction with revision protection, then reloads the canonical data from the Worker.</p><p>Company names, contact details, classification, follow-up, notes and OCR review notes are editable. The source scans will be served through private storage.</p>`);
   document.querySelectorAll('[data-close]').forEach(button => button.onclick = close);
 };
+
+
+
+// ============================
+// SORT FUNCTIONALITY
+// ============================
+function sortColumn(column) {
+  if (!currentSort.column || currentSort.column === column) {
+    // Toggle direction
+    currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+  } else {
+    currentSort.column = column;
+    currentSort.direction = 'asc';
+  }
+  
+  // Update header indicators
+  document.querySelectorAll('.sortable-header').forEach(th => {
+    th.classList.remove('asc', 'desc');
+  });
+  const currentTh = document.querySelector(\`th[onclick="sortColumn('${column}')"]\`);
+  if (currentTh) {
+    currentTh.classList.add(currentSort.direction);
+  }
+  
+  // Sort companies array
+  companies.sort((a, b) => {
+    const aVal = getSortValue(a, column);
+    const bVal = getSortValue(b, column);
+    
+    if (aVal < bVal) return currentSort.direction === 'asc' ? -1 : 1;
+    if (aVal > bVal) return currentSort.direction === 'asc' ? 1 : -1;
+    return 0;
+  });
+  
+  // Re-render table
+  render();
+}
+
+function getSortValue(company, column) {
+  switch(column) {
+    case 'company':
+      return company.company.toLowerCase();
+    case 'person':
+      return [...new Set(company.interactions.map(i => i.person))].filter(Boolean).join(', ').toLowerCase();
+    case 'priority':
+      return (company.interactions[company.interactions.length - 1]?.priority || '').toLowerCase();
+    case 'followup':
+      return company.interactions.find(i => i.followup)?.followup || '';
+    case 'status':
+      return company.interactions.some(i => !i.goodEnough) ? 'needs_review' : 'reviewed';
+    default:
+      return '';
+  }
+}
+
+// ============================
+// DELETE CONFIRMATION
+// ============================
+function showDeleteConfirm(companyName) {
+  pendingDeleteId = companyName;
+  const confirmed = confirm(\`Delete "${esc(companyName)}" entry?
+
+This action cannot be undone.
+Are you sure you want to proceed?\`);
+  
+  if (confirmed && editor) {
+    deleteCompany(companyName);
+  }
+}
+
+async function deleteCompany(companyName) {
+  try {
+    const response = await fetch(\`\${API_BASE}/api/contacts?company=\${encodeURIComponent(companyName)}\`, {
+      method: 'DELETE'
+    });
+    
+    if (response.ok) {
+      await loadFromDatabase(true);
+      alert('Entry deleted successfully!');
+    } else {
+      const error = await response.json();
+      alert(\`Delete failed: \${error.error || 'Unknown error'}\`);
+    }
+  } catch (error) {
+    console.error('Delete error:', error);
+    alert(\`Could not delete: \${error.message}\`);
+  }
+}
+
+// ============================
+// FILTER INPUT HANDLING
+// ============================
+function setupFilterInputs() {
+  const inputs = document.querySelectorAll('[data-filter]');
+  inputs.forEach(input => {
+    input.addEventListener('input', () => {
+      render();
+    });
+  });
+}
+
 
 render();
 loadFromDatabase();
