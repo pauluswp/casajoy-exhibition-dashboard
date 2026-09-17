@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>CasaJoy Exhibition Contacts (LOCAL MOCK)</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Load Mock Auth FIRST - enables all buttons -->
+  <script src="mock-auth.js"></script>
+  
+  <div class="shell">
+    <aside>
+      <div class="logo">CasaJoy</div>
+      <p class="small">EXHIBITION CONTACTS (LOCAL MOCK MODE)</p>
+      <nav>
+        <a class="active" href="#">Contact register</a>
+        <a href="#review">Needs review <b id="reviewCount">0</b></a>
+        <a href="#guide" id="guideLink">Guide book</a>
+        <a href="admin-mock-login.html" id="adminLink">Admin (local test)</a>
+      </nav>
+      <div class="side-note">Local test environment<br><span>Changes not persisted • Sign in enabled</span></div>
+    </aside>
+    <main>
+      <header>
+        <div>
+          <p class="small">CASAJOY FIELD DESK (LOCAL)</p>
+          <h1>Exhibition contacts (mock mode)</h1>
+        </div>
+        <div class="actions">
+          <button id="loginBtn" class="blue">✓ Signed in as test</button>
+          <button id="addBtn" class="blue">Add contact</button>
+          <button id="exportBtn" class="outline">Export .xlsx</button>
+        </div>
+      </header>
+      
+      <!-- Warning banner for local mode -->
+      <section class="warning-banner">
+        ⚠️ <strong>LOCAL MOCK MODE ACTIVE:</strong> This is a testing environment. All changes will be lost when you refresh. For production updates, commit and push code to GitHub.
+      </section>
+      
+      <section class="summary">
+        <div><span>Companies</span><strong id="companyCount">0</strong></div>
+        <div><span>Interactions</span><strong id="interactionCount">0</strong></div>
+        <div><span>Needs review</span><strong id="reviewSummary">0</strong></div>
+        <div><span>Editor</span><strong id="editorSummary">test (Test Administrator)</strong></div>
+      </section>
+      
+      <section class="panel" id="contacts">
+        <div class="panel-head">
+          <div>
+            <p class="small">REGISTER (MOCK DATA)</p>
+            <h2>Sample companies and conversation history</h2>
+          </div>
+          <input id="search" placeholder="Search company, person or notes">
+        </div>
+        
+        <!-- Sample data table -->
+        <table>
+          <thead>
+            <tr>
+              <th>Company</th>
+              <th>People</th>
+              <th>Relationship</th>
+              <th>Latest follow-up</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="rows">
+            <!-- Pre-loaded sample data for UI testing -->
+            <tr>
+              <td><button class="company" data-company="comp-1">Alpha Foods Pty Ltd</button></td>
+              <td><span class="person">John Smith</span></td>
+              <td><span class="tag">Potential Customer</span></td>
+              <td>Fine Food Australia 2026, Day 1</td>
+              <td class="review">Needs review</td>
+              <td><button class="edit" data-company="comp-1">Review &gt;</button></td>
+            </tr>
+            <tr>
+              <td><button class="company" data-company="comp-2">Beta Manufacturing</button></td>
+              <td><span class="person">Sarah Johnson</span></td>
+              <td><span class="tag">Existing Customer</span></td>
+              <td>Health & Beauty Show, Day 2</td>
+              <td>Reviewed</td>
+              <td><button class="edit" data-company="comp-2">Open &gt;</button></td>
+            </tr>
+            <tr>
+              <td><button class="company" data-company="comp-3">Gamma Trading Co</button></td>
+              <td><span class="person">Mike Wilson</span></td>
+              <td><span class="tag">Distributor</span></td>
+              <td>Wellness Expo, Day 3</td>
+              <td class="review">Needs review</td>
+              <td><button class="edit" data-company="comp-3">Review &gt;</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+      
+      <section class="panel review-panel" id="review">
+        <p class="small">REVIEW QUEUE (MOCK)</p>
+        <h2>Finish the records that need your attention</h2>
+        <p>Click on any "Needs review" items above to mark them complete.</p>
+      </section>
+      
+      <section class="panel">
+        <p class="small">ABOUT LOCAL MOCK MODE</p>
+        <ul style="line-height: 1.8;">
+          <li>✅ <strong>SIGN IN IS ENABLED:</strong> You're logged in as "test" with full admin privileges</li>
+          <li>✅ <strong>ALL BUTTONS WORK:</strong> Add contact, Export, Review features are accessible</li>
+          <li>⚠️ <strong>NONE ARE REAL:</strong> Changes don't persist to database (no backend connected)</li>
+          <li>🔄 <strong>READY TO DEPLOY:</strong> When satisfied with visual changes, edit files and commit to Git</li>
+        </ul>
+      </section>
+    </main>
+  </div>
+  
+  <!-- Load app.js AFTER mock auth -->
+  <script src="app.js"></script>
+</body>
+</html>
+

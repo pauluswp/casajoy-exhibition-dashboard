@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>CasaJoy Exhibition Contacts (Local Dev)</title>
+  <title>CasaJoy Exhibition Contacts</title>
   <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body class="">
   <!-- Load Mock Auth FIRST - enables all buttons when running on localhost -->
   <script src="mock-auth.js"></script>
   
@@ -25,7 +25,7 @@
     <main>
       <header>
         <div>
-          <p class="small">CASAJOY FIELD DESK</p>
+          <p class="small">CASAJOY FIELD DESK (LOCAL)</p>
           <h1>Exhibition contacts</h1>
         </div>
         <div class="actions">
@@ -66,11 +66,11 @@
         <table>
           <thead>
             <tr>
-              <th class="sortable-header" onclick="sortColumn('company')">Company</th>
-              <th class="sortable-header" onclick="sortColumn('person')">People</th>
-              <th class="sortable-header" onclick="sortColumn('priority')">Relationship</th>
-              <th class="sortable-header" onclick="sortColumn('followup')">Latest follow-up</th>
-              <th class="sortable-header" onclick="sortColumn('status')">Status</th>
+              <th>Company</th>
+              <th>People</th>
+              <th>Relationship</th>
+              <th>Latest follow-up</th>
+              <th>Status</th>
               <th></th>
             </tr>
           </thead>
@@ -91,6 +91,14 @@
               <td>Health & Beauty Show, Day 2</td>
               <td>Reviewed</td>
               <td><button class="edit" data-company="comp-2">Open &gt;</button></td>
+            </tr>
+            <tr>
+              <td><button class="company" data-company="comp-3">Gamma Trading Co</button></td>
+              <td><span class="person">Mike Wilson</span></td>
+              <td><span class="tag">Distributor</span></td>
+              <td>Wellness Expo, Day 3</td>
+              <td class="review">Needs review</td>
+              <td><button class="edit" data-company="comp-3">Review &gt;</button></td>
             </tr>
           </tbody>
         </table>
